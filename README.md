@@ -6,5 +6,7 @@
 https://data.kcg.gov.tw/dataset/kcgoa-00000117-fd7/resource/dadc63e5-636e-4a89-aa9d-18391fc0911b
 
 Vue.js 2.0.3
+
 jQuery 3.4.1
+
 Bootstrap 4.3.1
