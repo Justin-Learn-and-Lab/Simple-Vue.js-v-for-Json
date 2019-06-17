@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>輕軌車站出入口基本資料 (Vue.js + Bootstrap)</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+
+  <div id="app" style="padding:30px;">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <td>車站代碼</td>
+          <td>中文站名</td>
+          <td>英文站名</td>
+          <td>備註</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in data">
+          <th scope="row">
+            {{item.車站代碼}}
+          </th>
+          <td>
+            {{item.車站中文站名}}
+          </td>
+          <td>
+            {{item.車站英文站名}}
+          </td>
+          <td>
+            {{item.備註}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data: {
+        data: {}
+      },
+      beforeCreate: function () {
+        var self = this;
+        $.getJSON("https://api.kcg.gov.tw/api/service/get/4eba94e0-323c-4530-95a6-dd276bd8765d", function (data) {
+          self.data = data.data.data;
+        });
+      }
+    });
+  </script>
+
+</body>
+
+</html>
