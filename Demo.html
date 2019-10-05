@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr @click="alert()" v-for="item in data">
+        <tr @click="helloAlert" v-for="item in data">
           <th scope="row">
             {{item.車站代碼}}
           </th>
@@ -53,6 +53,11 @@
         $.getJSON("https://api.kcg.gov.tw/api/service/get/4eba94e0-323c-4530-95a6-dd276bd8765d", function (data) {
           self.data = data.data;
         });
+      },
+      methods:{
+        helloAlert:function(){
+          alert();
+        }
       }
     });
   </script>
