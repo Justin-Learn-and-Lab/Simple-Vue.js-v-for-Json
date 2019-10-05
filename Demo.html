@@ -43,13 +43,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
-    var app = new Vue({
+    let app = new Vue({
       el: "#app",
       data: {
         data: {}
       },
       beforeCreate: function () {
-        var self = this;
+        let self = this;
         $.getJSON("https://api.kcg.gov.tw/api/service/get/4eba94e0-323c-4530-95a6-dd276bd8765d", function (data) {
           self.data = data.data;
         });
