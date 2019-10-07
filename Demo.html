@@ -43,11 +43,487 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
-    var abc = new class {
-        constructor() {
-          this.value = "";
-        }
-    }
+    function isNullOrUndefinedOrWhiteSpace(value) {
+	if (value === null)
+		return true;
+	if (value == undefined)
+		return true;
+	if (value.trim() == "")
+		return true;
+	return false;
+}
+
+var mapping = {
+	/**
+	 * 轉換成基本問題
+	 * @param {ApiResultGetGeneralQuestionData} value
+	 */
+	convertToBaseQuestions: function (value) {
+		var result = [new BaseQuestion()];
+		var index = 0;
+		result.pop();
+
+		value.data.questionList.forEach(function (e) {
+			var obj = new BaseQuestion();
+
+			obj.id = e.id;
+			obj.number = e.number;
+			obj.description = e.content;
+			obj.questionType = e.questionType;
+
+			result.push(obj);
+
+			if (e.options !== undefined) {
+				for (var i = 0; i < e.options.length; i++) {
+					if (result[index].options !== undefined) {
+						result[index].options.push({ id: e.options[i].id, description: e.options[i].content });
+					}
+				}
+			}
+
+			index++;
+		});
+
+		return result;
+	},
+
+	/**
+	 * 轉換成目前要回答的權利問題
+	 * @param {ApiResultGetAdvancedQuestionData} value
+	 */
+	convertToCurrentAdvancedQuestion: function (value) {
+		var result = new AdvancedQuestion();
+		var questionData = value.data.questionData;
+		questionData = value.data.questionData;
+
+		result.advancedQuestionId = questionData.id;
+		result.number = questionData.number;
+		result.description = questionData.content;
+		result.summary = questionData.summary;
+		result.questionType = questionData.questionType;
+		result.status = questionData.status;
+		value.data.questionData.optionSort.forEach(function (e) {
+			result.options.push({
+				id: e,
+				description: questionData.optionList[e]
+			})
+		});
+
+		return result;
+	},
+
+	/**
+	 * 將完成基本問題的資料 轉換成 所有權利問題的摘要
+	 * @param {string} categoryId 傳入五大項目的id
+	 * @param {ApiResultFinishedGeneralQuestion} value
+	 * @returns {Array<AdvancedQuestion>}
+	 */
+	convertToCurrentAdvancedQuestions: function (categoryId, value) {
+		var result = [new AdvancedQuestion()];
+		result.pop();
+		var questionSort = value.data.advancedQuestionData.questionSort;
+		var questionList = value.data.advancedQuestionData.questionList;
+
+		questionSort.forEach(function (e) {
+			var advancedQuestion = new AdvancedQuestion();
+
+			advancedQuestion.advancedQuestionId = questionList[e].id;
+			advancedQuestion.summary = questionList[e].summary;
+			advancedQuestion.number = questionList[e].number;
+
+			result.push(advancedQuestion);
+		});
+
+		return result;
+	},
+
+	/**
+	 * @param {ApiResultAnswerAdvancedQuestion} value
+	 * @returns {AnsResult}
+	 * */
+	convertToAnsResult: function (value) {
+		var result = new AnsResult();
+		var questionData = value.data.questionData;
+
+		result.id = questionData.feedbackId;
+		result.result = questionData.feedbackContent;
+		result.detail = questionData.feedbackAdvisement;
+		result.isCorrect = questionData.status === 1 ? true : false;
+
+		return result;
+	}
+}
+
+class ApiResultGetGeneralQuestionData {
+	constructor() {
+		this.status = 1;
+		this.data = {
+			haveGeneralQuestion: true,
+			questionList: [
+				{
+					id: "",
+					number: 0,
+					questionType: "",
+					content: "",
+					options: [
+						{
+							id: "",
+							content: ""
+						}
+					]
+				}
+			],
+			examinationData: {
+				version: "",
+				position: "",
+				examinationDetail: {
+					E01: {
+						generalQuestion: {
+							questionSort: [""],
+							questionList: {
+
+							}
+						},
+						advancedQuestion: {
+							questionSort: [""],
+							questionList: {}
+						}
+					}
+				},
+			},
+			encryptionExaminationData: ""
+		}
+		this.code = "";
+		this.description = "";
+	}
+}
+
+class ApiResultFinishedGeneralQuestion {
+	constructor() {
+		this.Status = "";
+		this.Data = {
+			advancedQuestionData: {
+				questionSort: [""],
+				questionList: {}
+			},
+			encryptionExaminationData: ""
+		};
+		this.Code = "";
+		this.Description = "";
+	}
+}
+
+class ApiResultAdvancedQuestion {
+	constructor() {
+		this.id = "";
+		this.summary = "";
+		this.questionType = "";
+		this.status = 0;
+		this.content = "";
+	}
+}
+
+class ApiRequestGetAdvancedQuestionData {
+	constructor() {
+		this.advancedQuestionId = "";
+		this.encryptionExaminationData = "";
+	}
+}
+
+class ApiResultGetAdvancedQuestionData {
+	constructor() {
+		this.Status = "";
+		this.Data = {
+			questionData: {
+				number: 0,
+				summary: "",
+				questionType: "",
+				status: 0,
+				content: "",
+				answer: {},
+				optionSort: [""],
+				optionList: {},
+				answerId: {},
+				answerContent: {},
+				answerContentCustomization: {
+					count: 0
+				},
+				answerAdvisement: null,
+				answerAdvisementCustomization: {
+					count: 0
+				},
+				id: "E01_A0001"
+			},
+			encryptionExaminationData: ""
+		};
+		this.Code = "";
+		this.Description = "";
+	}
+}
+
+/**
+ * 回答權利問題回傳的資料格式
+ * */
+class ApiResultAnswerAdvancedQuestion {
+	constructor() {
+		this.Status = 0;
+		this.Data = {
+			questionData: {
+				id: "",
+				summary: "",
+				questionType: "",
+				status: 0,
+				content: "",
+				userAnswer: "",
+				optionSort: [""],
+				optionList: {},
+				feedbackId: "",
+				feedbackContent: "",
+				feedbackAdvisement: "",
+				feedbackAdvisementCustomization: {
+					count: 0
+				}
+			},
+			encryptionExaminationData: ""
+		}
+		this.Code = "";
+		this.Description = "";
+		this.Data.questionData.optionSort.pop();
+	}
+}
+
+class BaseQuestion {
+	constructor() {
+		this.id = "";
+		this.number = 0;
+		this.questionType = "";
+		this.description = "";
+		this.options = [{
+			id: "",
+			description: "",
+		}]
+		this.options.pop();
+	}
+}
+
+class QuickQuestion {
+	constructor() {
+		this.id = "";
+		this.description = "";
+	}
+}
+
+class AdvancedQuestion {
+	constructor() {
+		this.number = 0;
+		this.advancedQuestionId = "";
+		this.description = "";
+		this.summary = "";
+		this.questionType = "";
+		this.status = "";
+		this.options = [{
+			//ID
+			id: "",
+			//答案值
+			description: ""
+		}]
+		this.options.pop();
+	}
+}
+
+class CurrentAdvancedQuestions {
+	constructor() {
+		this.advancedQuestions = [
+			new AdvancedQuestion()
+		]
+		this.advancedQuestions.pop();
+	}
+}
+
+class AnsResult {
+	constructor() {
+		this.id = "";
+		this.result = "";
+		this.detail = "";
+		this.isCorrect = false;
+	}
+}
+
+var employeeHaveBaseQuestionLocalStorge = new class {
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 * @returns {boolean}
+	 */
+	getValue(categoryId) {
+		var result = localStorage["employee_E0" + categoryId.toString() + "_HaveBaseQuestion"];
+		return result === 'true';
+	}
+
+	/**
+	 * @param {Number} categoryId
+	 * @param  {boolean} value
+	 * @returns {Array<AdvancedQuestion>}
+	 * */
+	setValue(categoryId, value) {
+		localStorage["employee_E0" + categoryId.toString() + "_HaveBaseQuestion"] = value;
+	}
+
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 */
+	clear(categoryId) {
+		localStorage.removeItem("employee_E0" + categoryId.toString() + "_HaveBaseQuestion");
+	}
+}
+
+var employeeAdvancedQuestionsLocalStorge = new class {
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 * @returns {Array<AdvancedQuestion>}
+	 */
+	getValue(categoryId) {
+		var result = localStorage["employee_E0" + categoryId.toString() + "_AdvancedQuestions"];
+		return JSON.parse(result);
+	}
+
+	/**
+	 * 
+	 * @returns {Array<AdvancedQuestion>}
+	 * */
+	setValue(categoryId, value) {
+		localStorage["employee_E0" + categoryId.toString() + "_AdvancedQuestions"] = JSON.stringify(value);
+	}
+
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 */
+	clear(categoryId) {
+		localStorage.removeItem("employee_E0" + categoryId.toString() + "_AdvancedQuestions");
+	}
+}
+
+var employeeCurrentAdvancedQuestionLocalStorge = new class {
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 * @returns {string}
+	 */
+	getValue(categoryId) {
+		return localStorage["employee_" + "E0" + categoryId + "_CurrentAdvancedQuestion"];
+	}
+
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 * @param {string} advancedQuestionId
+	 */
+	setValue(categoryId, advancedQuestionId) {
+		localStorage["employee_" + "E0" + categoryId + "_CurrentAdvancedQuestion"] = advancedQuestionId;
+	}
+
+	/**
+	 * 
+	 * @param {Number} categoryId
+	 */
+	clear(categoryId) {
+		localStorage.removeItem("employee_" + "E0" + categoryId + "_CurrentAdvancedQuestion");
+	}
+}
+
+
+var employeeEncryptLocalStorge = new class {
+	/**
+	* @returns {string}
+	* */
+	getValue() {
+		return localStorage["employee_encryptionExaminationData"];
+	}
+
+	/**
+	 * 
+	 * @param {string} value
+	 */
+	setValue(value) {
+		localStorage["employee_encryptionExaminationData"] = value;
+	}
+
+	clear() {
+		localStorage.removeItem("employee_encryptionExaminationData");
+	}
+}
+
+var vData = {
+	/**
+	*API的網域名稱
+	 */
+	host: "http://192.168.1.90",
+
+	/**
+	* 五大項目
+	*/
+	categories: [
+		{ id: 1, value: "人事(勞、健、退投保)" },
+		{ id: 2, value: "出勤(加班、補休、特別休假)" },
+		{ id: 3, value: "薪資(工資、非工資福利)" },
+		{ id: 4, value: "職業災害補償" },
+		{ id: 5, value: "資遣費、退休金" }
+	],
+
+	/**
+	 * 目前在六大項目的那一個項目
+	 * */
+	category: {
+		id: 0,
+		value: ""
+	},
+
+	/**
+	 * 0:五大項目選單  1:基本問題  2:權利問題  3:回答結果
+	*/
+	step: 0,
+
+	/**
+	 *目前在作答的基本題目
+	 */
+	currentBaseQuestions: [new BaseQuestion()],
+
+	haveGeneralQuestion: true,
+
+	baseQuestionAnswerData: {},
+
+	currentAdvancedQuestion: new AdvancedQuestion(),
+
+	currentAdvancedQuestions: [new AdvancedQuestion()],
+
+	advancedAnswerData: {},
+
+	ansResult: new AnsResult(),
+
+	encryptionExaminationData: "",
+
+	errorList: {},
+
+	form: {
+		encryptionExaminationData: "",
+		position: "",
+		Name: "",
+		Birthday: "",
+		Gender: "",
+		PhoneNumber: "",
+		Email: ""
+	},
+
+	init: function () {
+		this.currentBaseQuestions.pop();
+		this.currentAdvancedQuestions.pop();
+	}
+}
+
+vData.init();
     
     
     var app = new Vue({
