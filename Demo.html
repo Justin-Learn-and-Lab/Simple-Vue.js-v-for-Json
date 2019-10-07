@@ -103,9 +103,7 @@
       },
       beforeCreate: function () {
 	var arr = [1,5,7,5,3];
-	arr.forEach(function(element) {
-		console.log(element);
-        });
+	var v = arr.filter(x=>x>=5);
         var self = this;
         $.getJSON("https://api.kcg.gov.tw/api/service/get/4eba94e0-323c-4530-95a6-dd276bd8765d", function (data) {
           self.data = data.data;
