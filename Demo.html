@@ -43,42 +43,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
-	  if (!Array.prototype.filter)
-  Array.prototype.filter = function(func, thisArg) {
-    'use strict';
-    if ( ! ((typeof func === 'Function') && this) )
-        throw new TypeError();
-    
-    var len = this.length >>> 0,
-        res = new Array(len), // 預先配置陣列
-        c = 0, i = -1;
-    if (thisArg === undefined)
-      while (++i !== len)
-        // 確認物件的鍵值i是否有被設置
-        if (i in this)
-          if (func(t[i], i, t))
-            res[c++] = t[i];
-    else
-      while (++i !== len)
-        // 確認物件的鍵值i是否有被設置
-        if (i in this)
-          if (func.call(thisArg, t[i], i, t))
-            res[c++] = t[i];
-    
-    res.length = c; // 將陣列縮至適當大小
-    return res;
-  };
-	 
     var app = new Vue({
       el: "#app",
       data: {
         data: {}
       },
       beforeCreate: function () {
-	var arr = [1,5,7,5,3];
-	var v = arr.filter((x)=>
-          x>=2
-	);
         var self = this;
         $.getJSON("https://api.kcg.gov.tw/api/service/get/4eba94e0-323c-4530-95a6-dd276bd8765d", function (data) {
           self.data = data.data;
